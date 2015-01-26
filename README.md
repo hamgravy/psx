@@ -5,10 +5,10 @@ This tool is intended to provide a maximally portable bitcoin swiss army knife, 
 
 PREPARE: Install these packages to get going. There are a minimum number of required dependencies, by design. For example, on an Ubuntu machine...
 
-    apt-get install python-ecdsa python-openssl
-    pip install scrypt
-    git clone https://github.com/trezor/python-mnemonic
-    ./setup.py install
+    apt-get install python-pip libssl-dev python-ecdsa
+    pip install scrypt pycrypto
+    git clone https://github.com/trezor/python-mnemonic && cd python-mnemonic
+    sudo ./setup.py install
 
 INSTALL: Move the psx.py to a location in your path. Make sure it has execute permissions for the necessary users and groups. 
 
