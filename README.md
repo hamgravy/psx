@@ -8,11 +8,7 @@ PREPARE: Install these packages to get going. There are a minimum number of requ
     apt-get install python-pip libssl-dev python-ecdsa
     pip install scrypt pycrypto
     git clone https://github.com/trezor/python-mnemonic && cd python-mnemonic
-<<<<<<< HEAD
     ./setup.py install
-=======
-    sudo ./setup.py install
->>>>>>> fde870293024b552e80da34cc25ad3335f5a39c0
 
 INSTALL: Move the psx python file to a location in your path. Make sure it has execute permissions for the necessary users and groups.
 
