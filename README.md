@@ -1,17 +1,20 @@
 # psx
 A python implementation and extension of the sx bitcoin tool.
 
-This tool is intended to provide a maximally portable bitcoin swiss army knife, compatible with spesmilo's sx tool. This is alpha-level software and does not yet accomplish the intended goals. Use this software at your own risk. 
+This tool is intended to provide a maximally portable bitcoin swiss army knife, mostly compatible with spesmilo's sx tool. This is alpha-level software and does not yet accomplish the intended goals. Use this software at your own risk.
 
 PREPARE: Install these packages to get going. There are a minimum number of required dependencies, by design. For example, on an Ubuntu machine...
 
     apt-get install python-pip libssl-dev python-ecdsa
     pip install scrypt pycrypto
     git clone https://github.com/trezor/python-mnemonic && cd python-mnemonic
+<<<<<<< HEAD
+    ./setup.py install
+=======
     sudo ./setup.py install
+>>>>>>> fde870293024b552e80da34cc25ad3335f5a39c0
 
-INSTALL: Move the psx.py to a location in your path. Make sure it has execute permissions for the necessary users and groups. 
-
+INSTALL: Move the psx python file to a location in your path. Make sure it has execute permissions for the necessary users and groups.
 
 tests/demos:
 =====================
@@ -51,6 +54,7 @@ encode/decode bip39:
 
     cat phrase.txt | ./psx mnemonic decode TREZOR
     b5b6d0127db1a9d2226af0c3346031d77af31e918dba64287a1b44b8ebf63cdd52676f672a290aae502472cf2d602c051f3e6f18055e84e4c43897fc4e51a6ff
+
 encode/decode bip38:
 
     echo "correct horse battery staple" | ./psx brainwallet | ./psx bip38enc test | tee bip38key.txt
@@ -61,3 +65,17 @@ encode/decode bip38:
 
     cat bip38key.txt | ./psx bip38dec badpasswordtest
     address hash mismatch! the attempted password is incorrect
+
+generate bip32 root private key
+
+    echo "000102030405060708090a0b0c0d0e0f" | ./psx bip32root
+    xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi
+
+generate bip32 root private key from bip39 mnemonic
+
+    echo "77c2b00716cec7213839159e404db50d" | ./psx mnemonic encode TREZOR | tee phrase.txt
+    jelly better achieve collect unaware mountain thought cargo oxygen act hood bridge
+    
+    cat phrase.txt | ./psx mnemonic decode TREZOR | ./psx bip32root
+    xprv9s21ZrQH143K3xC5SRKnxV4R829AcnKE7XjZu2PixyZh3CexnsvmkBsi5rzqXMhxTkfLJFB6FuHJPWxxvcH5eYvCDvWcYAMXpbpGGiVUDfH
+

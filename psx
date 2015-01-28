@@ -160,77 +160,74 @@ def bip38d(bip38key,passphrase):
     return wif
 
 def bip32root(seed):
-    #rawkey=hmac.new("Bitcoin seed",seed,hashlib.sha512).digest()
-    #mastersecret = rawkey[32:]
-    #chaincode = rawkey[:32]
-    #prefix=b'\x04\x88\xB2\x1E'
-    #masternode = b'\x00'
-    #parentfingerprint = b'\x00\x00\x00\x00'
-    #childnumber = b'\x00\x00\x00\x00'    
-    #serialized = prefix + masternode + parentfingerprint + childnumber + chaincode + b'\x00' + mastersecret
-    #print b58e(serialized)
-    #print rawkey.encode('hex')
-    #print mastersecret.encode('hex')
-    #print chaincode.encode('hex')
-    return "under development!"
+    seed=seed.decode('hex')
+    rawkey = hmac.HMAC("Bitcoin seed", seed, hashlib.sha512).digest()
+    mastersecret = rawkey[:32]
+    chaincode = rawkey[32:]
+    prefix=b'\x04\x88\xAD\xE4' # xprv
+    masternode = b'\x00'
+    parentfingerprint = b'\x00\x00\x00\x00'
+    childnumber = b'\x00\x00\x00\x00'    
+    serialized = prefix + masternode + parentfingerprint + childnumber + chaincode + b'\x00' + mastersecret
+    return b58ce(serialized)
 
 #-------------------------------------------------------------
 
 if sys.argv[1] == "sha256":
-	argin=sys.stdin.readline().strip()
-	hashoutput= sha256(argin).encode('hex')
-	print hashoutput
+    argin=sys.stdin.readline().strip()
+    hashoutput= sha256(argin).encode('hex')
+    print hashoutput
 elif sys.argv[1] == "newkey":
-	key = os.urandom(32)
-	print wifencode(key)
+    key = os.urandom(32)
+    print wifencode(key)
 elif sys.argv[1] == "addr": 
-	argin=sys.stdin.readline().strip()
-	pubkey = pubkey(argin)
-	address = pubtoaddr(pubkey)
-	print address
+    argin=sys.stdin.readline().strip()
+    pubkey = pubkey(argin)
+    address = pubtoaddr(pubkey)
+    print address
 elif sys.argv[1] == "pubkey": 
-	argin=sys.stdin.readline().strip()
-	pubkey = pubkey(argin)
-	print pubkey
+    argin=sys.stdin.readline().strip()
+    pubkey = pubkey(argin)
+    print pubkey
 elif sys.argv[1] == "brainwallet":
-	argin=sys.stdin.readline().strip()
-	key=sha256(argin)
-	print wifencode(key)
+    argin=sys.stdin.readline().strip()
+    key=sha256(argin)
+    print wifencode(key)
 elif sys.argv[1] == "mnemonic":
-	argin=sys.stdin.readline().strip()
-	mnemo = Mnemonic('english')
-	codedir = sys.argv[2]
-	if len(sys.argv) == 4:
-		encodepass = sys.argv[3]
-	else:
-		encodepass = ""
-	if codedir == "decode":
-		print Mnemonic.to_seed(argin,passphrase=encodepass).encode('hex')
-	elif codedir == "encode":
-		print Mnemonic.to_mnemonic(mnemo,argin.decode('hex'))
+    argin=sys.stdin.readline().strip()
+    mnemo = Mnemonic('english')
+    codedir = sys.argv[2]
+    if len(sys.argv) == 4:
+        encodepass = sys.argv[3]
+    else:
+        encodepass = ""
+    if codedir == "decode":
+        print Mnemonic.to_seed(argin,passphrase=encodepass).encode('hex')
+    elif codedir == "encode":
+        print Mnemonic.to_mnemonic(mnemo,argin.decode('hex'))
 elif sys.argv[1] == "bip38enc":
-	argin = sys.stdin.readline().strip()
-	passphrase = sys.argv[2]
-	bip38key = bip38e(argin,passphrase)
-	print bip38key
+    argin = sys.stdin.readline().strip()
+    passphrase = sys.argv[2]
+    bip38key = bip38e(argin,passphrase)
+    print bip38key
 elif sys.argv[1] == "bip38dec":
-	argin = sys.stdin.readline().strip()
-	passphrase = sys.argv[2]
-	wifkey = bip38d(argin,passphrase)
-	if wifkey != 0:
-         print wifkey  	
+    argin = sys.stdin.readline().strip()
+    passphrase = sys.argv[2]
+    wifkey = bip38d(argin,passphrase)
+    if wifkey != 0:
+        print wifkey  	
 elif sys.argv[1] == "bip32root":
     argin = sys.stdin.readline().strip()
     bip32rootkey = bip32root(argin)
     print bip32rootkey
 else:	
-	print "invalid input"	
+    print "invalid input"	
 
-#TODO: bip32 master private key from mnemonic
-#TODO: stealth address feature support
-#TODO: sign message using private key
-#TODO: blockchain.info API (or some other service) (get utxos, get balances, etc)
-#TODO: pay to pubkey hash transaction generation
-#TODO: sign pay to pubkey hash transactions
-#TODO: generate pay to script hash transactions
 #TODO: elliptic curve math primitaves
+#TODO: pay to pubkey hash transaction generation
+#TODO: sign message using private key
+#TODO: sign pay to pubkey hash transactions
+#TODO: stealth address feature support
+#TODO: blockchain.info API (or some other service) (get utxos, get balances, etc)
+#TODO: generate pay to script hash transactions
+
