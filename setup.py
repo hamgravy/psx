@@ -8,6 +8,7 @@ setup(
     description='Python implementation of spesmilo/sx bitcoin tool',
     url='https://github.com/hamgravy/psx',
     zip_safe=False,
+    scripts=['psx'],
     install_requires=['mnemonic','scrypt','pycrypto','ecdsa','hashlib','hmac'],
     classifiers=[
         'License :: OSI Approved :: MIT License',
