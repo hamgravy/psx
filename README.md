@@ -3,14 +3,18 @@ A python implementation and extension of the sx bitcoin tool.
 
 This tool is intended to provide a maximally portable bitcoin swiss army knife, mostly compatible with spesmilo's sx tool. This is alpha-level software and does not yet accomplish the intended goals. Use this software at your own risk.
 
-PREPARE: Install these packages to get going. There are a minimum number of required dependencies, by design. For example, on an Ubuntu machine...
+PREPARE: You'll prpbably need these packages from your distro's package repo
 
     apt-get install python-pip libssl-dev python-ecdsa
-    pip install scrypt pycrypto
-    git clone https://github.com/trezor/python-mnemonic && cd python-mnemonic
-    ./setup.py install
 
-INSTALL: Move the psx python file to a location in your path. Make sure it has execute permissions for the necessary users and groups.
+INSTALL:
+
+    python setup.py install
+
+UNINSTALL:
+
+    python setup.py install --record files.txt
+    cat files.txt | xargs rm -rf
 
 tests/demos:
 =====================
