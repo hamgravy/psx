@@ -32,6 +32,7 @@ import os
 from mnemonic import Mnemonic
 
 b58_digits="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"	
+secp256k1_p = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f
 
 def b58ce(s):
 	checksum = hashlib.sha256(hashlib.sha256(s).digest()).digest()[:4]
@@ -85,17 +86,20 @@ def b58d(s):
 def sha256(b):
 	return hashlib.sha256(b).digest()
 
+def ecpoint(secret):
+    sk = ecdsa.SigningKey.from_string(secret, curve=ecdsa.SECP256k1)
+    rawpoint = sk.verifying_key.to_string().encode('hex')
+    ypoint = rawpoint[63:128]
+    if int(ypoint,16) & 1:
+	    comp = (b'\x03').encode('hex') + rawpoint[:64]
+    else:
+	    comp = (b'\x02').encode('hex') + rawpoint[:64]
+    return comp
+
 def pubkey(b):
-	decoded = b58cd(b)
-	key = decoded[1:-1]
-	sk = ecdsa.SigningKey.from_string(key, curve=ecdsa.SECP256k1)
-	rawpubkey = sk.verifying_key.to_string().encode('hex')
-	ypoint = rawpubkey[63:128]
-	if int(ypoint,16) & 1:
-		pubkeycomp = (b'\x03').encode('hex') + rawpubkey[:64]
-	else:
-		pubkeycomp = (b'\x02').encode('hex') + rawpubkey[:64]
-	return pubkeycomp
+    decoded = b58cd(b)
+    key = decoded[1:-1]
+    return ecpoint(key)
 
 def pubtoaddr(pubkey):
 	ripemd160 = hashlib.new('ripemd160')
@@ -161,7 +165,9 @@ def bip38d(bip38key,passphrase):
 
 def bip32root(seed):
     seed=seed.decode('hex')
-    rawkey = hmac.HMAC("Bitcoin seed", seed, hashlib.sha512).digest()
+    hmackey="Bitcoin seed"
+    data=seed
+    rawkey = hmac.HMAC(hmackey, data, hashlib.sha512).digest()
     mastersecret = rawkey[:32]
     chaincode = rawkey[32:]
     prefix=b'\x04\x88\xAD\xE4' # xprv
@@ -170,6 +176,37 @@ def bip32root(seed):
     childnumber = b'\x00\x00\x00\x00'    
     serialized = prefix + masternode + parentfingerprint + childnumber + chaincode + b'\x00' + mastersecret
     return b58ce(serialized)
+
+def bip32CKD(x,n):
+    extendedkey = b58cd(x)
+    prefix=extendedkey[:4]
+    if prefix != b'\x04\x88\xAD\xE4':
+        return "input must be in the bip32 extended private key format"
+
+    chaincode=extendedkey[13:45]
+    mastersecret=extendedkey[46:]
+
+    hmackey=chaincode
+    data=ecpoint(mastersecret).decode('hex') + b'\x00\x00\x00\x00'
+    rawkey = hmac.HMAC(hmackey, data, hashlib.sha512).digest()
+    childkey = (int(rawkey[:32].encode('hex'),16) + int(mastersecret.encode('hex'),16)) % secp256k1_p
+    childkey = hex(childkey)[2:-1].decode('hex')
+    childchaincode = rawkey[32:]
+
+    masternode = b'\x01'
+    parentfingerprint = b'\xbd\x16\xbe\xe5'
+    childnumber = b'\x00\x00\x00\x00' 
+    serialized = prefix + masternode + parentfingerprint + childnumber + childchaincode + b'\x00' + childkey
+    
+    test = "xprv9vHkqa6EV4sPZHYqZznhT2NPtPCjKuDKGY38FBWLvgaDx45zo9WQRUT3dKYnjwih2yJD9mkrocEZXo1ex8G81dwSM1fwqWpWkeS3v86pgKt"
+    #print b58d(test).encode('hex')    
+    #print childkey.encode('hex')
+    #print childchaincode.encode('hex')
+    #print b58cd(test).encode('hex')
+    #print serialized.encode('hex')
+    #print test
+    return b58ce(serialized)
+
 
 #-------------------------------------------------------------
 
@@ -220,6 +257,10 @@ elif sys.argv[1] == "bip32root":
     argin = sys.stdin.readline().strip()
     bip32rootkey = bip32root(argin)
     print bip32rootkey
+elif sys.argv[1] == "bip32":
+    argin = sys.stdin.readline().strip()
+    bip32privkey = bip32CKD(argin,0)
+    print bip32privkey
 else:	
     print "invalid input"	
 
@@ -230,4 +271,5 @@ else:
 #TODO: stealth address feature support
 #TODO: blockchain.info API (or some other service) (get utxos, get balances, etc)
 #TODO: generate pay to script hash transactions
+
 
