@@ -96,17 +96,28 @@ def ecpoint(secret):
 	    comp = (b'\x02').encode('hex') + rawpoint[:64]
     return comp
 
+def fingerprint(secret):
+    sk = ecdsa.SigningKey.from_string(secret, curve=ecdsa.SECP256k1)
+    rawpoint = sk.verifying_key.to_string()
+    fingerprint=sha256(rawpoint)
+    print rawpoint
+    print fingerprint
+    return rawpoint
+
 def pubkey(b):
     decoded = b58cd(b)
     key = decoded[1:-1]
     return ecpoint(key)
 
 def pubtoaddr(pubkey):
-	ripemd160 = hashlib.new('ripemd160')
-	ripemd160.update(hashlib.sha256(pubkey.decode('hex')).digest())
-	address = ripemd160.digest()
-	address = b58ce(b'\x00' + address)
-	return address
+    address = ripemd160(sha256(pubkey.decode('hex')))
+    address = b58ce(b'\x00' + address)
+    return address
+
+def ripemd160(data):
+    ripemd160hash = hashlib.new('ripemd160')
+    ripemd160hash.update(data)
+    return ripemd160hash.digest()
 
 def wifencode(b):
     return b58ce(b'\x80' + b + b'\x01')
@@ -195,10 +206,13 @@ def bip32CKD(x,n):
 
     masternode = b'\x01'
     parentfingerprint = b'\xbd\x16\xbe\xe5'
+    fp = fingerprint(mastersecret)
+    #print fp
     childnumber = b'\x00\x00\x00\x00' 
     serialized = prefix + masternode + parentfingerprint + childnumber + childchaincode + b'\x00' + childkey
     
     test = "xprv9vHkqa6EV4sPZHYqZznhT2NPtPCjKuDKGY38FBWLvgaDx45zo9WQRUT3dKYnjwih2yJD9mkrocEZXo1ex8G81dwSM1fwqWpWkeS3v86pgKt"
+    print parentfingerprint.encode('hex')    
     #print b58d(test).encode('hex')    
     #print childkey.encode('hex')
     #print childchaincode.encode('hex')
