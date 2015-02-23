@@ -29,10 +29,12 @@ import hmac
 import ecdsa
 import sys
 import os
+import struct
 from mnemonic import Mnemonic
 
-b58_digits="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"	
+b58_digits = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"	
 secp256k1_p = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f
+secp256k1_n = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
 
 def b58ce(s):
 	checksum = hashlib.sha256(hashlib.sha256(s).digest()).digest()[:4]
@@ -186,7 +188,7 @@ def bip32root(seed):
     serialized = prefix + masternode + parentfingerprint + childnumber + chaincode + b'\x00' + mastersecret
     return b58ce(serialized)
 
-def bip32CKD(x,n):
+def bip32CKD(x,n,masternode):
     extendedkey = b58cd(x)
     prefix=extendedkey[:4]
     if prefix != b'\x04\x88\xAD\xE4':
@@ -196,19 +198,18 @@ def bip32CKD(x,n):
     mastersecret=extendedkey[46:]
 
     hmackey=chaincode
-    data=ecpoint(mastersecret).decode('hex') + b'\x00\x00\x00\x00' #hardcoded?
+    data=ecpoint(mastersecret).decode('hex') + struct.pack(">I",n) 
     rawkey = hmac.HMAC(hmackey, data, hashlib.sha512).digest()
-    childkey = (int(rawkey[:32].encode('hex'),16) + int(mastersecret.encode('hex'),16)) % secp256k1_p
+    childkey = (int(rawkey[:32].encode('hex'),16) + int(mastersecret.encode('hex'),16)) % secp256k1_n
     childkey = hex(childkey)[2:-1].decode('hex')
     childchaincode = rawkey[32:]
 
-    masternode = b'\x01' #hardcoded?
+    masternode = chr(masternode) # this is the horizontal tree depth in the bip32 spec diagram
     parentfingerprint = fingerprint(mastersecret)
-    childnumber = b'\x00\x00\x00\x00' #hardcoded?
+    childnumber = struct.pack(">I",n)
+    
     serialized = prefix + masternode + parentfingerprint + childnumber + childchaincode + b'\x00' + childkey
-    #echo fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542 | ./psx bip32root | ./psx bip32
-    test = "xprv9vHkqa6EV4sPZHYqZznhT2NPtPCjKuDKGY38FBWLvgaDx45zo9WQRUT3dKYnjwih2yJD9mkrocEZXo1ex8G81dwSM1fwqWpWkeS3v86pgKt"    
-    print test
+
     return b58ce(serialized)
 
 
@@ -263,17 +264,19 @@ elif sys.argv[1] == "bip32root":
     print bip32rootkey
 elif sys.argv[1] == "bip32":
     argin = sys.stdin.readline().strip()
-    bip32privkey = bip32CKD(argin,0)
+    derivpath = sys.argv[2].split('/')
+    pathlen = len(derivpath)
+    if pathlen == 1 and derivpath[0] == "m": # the root key was requested, which was provided in the first place
+        bip32privkey = argin
+    elif pathlen == 2:
+        bip32privkey = bip32CKD(argin,int(derivpath[1]),1)
+    else:
+        print "specified bip32 arguement either malformed or not yet supported"
     print bip32privkey
+    
 else:	
     print "invalid input"	
 
-#TODO: elliptic curve math primitaves
-#TODO: pay to pubkey hash transaction generation
-#TODO: sign message using private key
-#TODO: sign pay to pubkey hash transactions
-#TODO: stealth address feature support
-#TODO: blockchain.info API (or some other service) (get utxos, get balances, etc)
-#TODO: generate pay to script hash transactions
+#TODO: finish bip32 features: support masternodes > 1, hardened key support, pubkey derivation, privkey/address combo output
 
 
