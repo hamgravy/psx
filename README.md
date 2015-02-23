@@ -79,9 +79,9 @@ generate bip32 root private key from bip39 mnemonic
     cat phrase.txt | psx mnemonic decode TREZOR | tee seed.txt | psx bip32root | tee root.txt
     xprv9s21ZrQH143K3xC5SRKnxV4R829AcnKE7XjZu2PixyZh3CexnsvmkBsi5rzqXMhxTkfLJFB6FuHJPWxxvcH5eYvCDvWcYAMXpbpGGiVUDfH
 
-generate bip32 private key of account 100 from master key
+generate bip32 private key of account/chain 100/2/67 from master key
 
     cat root.txt | psx bip32 m/100/2/67
-    xprv9ukRPjUyjjUBpXKoJcVK6KBxjdxeM1EoiRc6HEPBJZkSjkWD1K8bPmv1BQXPJ7k25iRy5shUk1x1X7r8oZfHZmDVtsqehRSmj9WirJXxwEz
+    xprv9ywxaeMMETnYqhTjDZxsrtnuDqC4SjH2eVP5X9iLcbEwE1QkPXCBNZ55NyemV5fq2sGQoSrVYFUvwjHYzR2B8W84SsXqvoEcLT39j9RWAeW
 
 
