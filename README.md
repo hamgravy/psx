@@ -76,12 +76,12 @@ generate bip32 root private key from bip39 mnemonic
     echo "77c2b00716cec7213839159e404db50d" | psx mnemonic encode TREZOR | tee phrase.txt
     jelly better achieve collect unaware mountain thought cargo oxygen act hood bridge
     
-    cat phrase.txt | psx mnemonic decode TREZOR | tee seed.txt | psx bip32root > root.txt
+    cat phrase.txt | psx mnemonic decode TREZOR | tee seed.txt | psx bip32root | tee root.txt
     xprv9s21ZrQH143K3xC5SRKnxV4R829AcnKE7XjZu2PixyZh3CexnsvmkBsi5rzqXMhxTkfLJFB6FuHJPWxxvcH5eYvCDvWcYAMXpbpGGiVUDfH
 
 generate bip32 private key of account 100 from master key
 
-    cat root.txt | psx bip32 m/100
+    cat root.txt | psx bip32 m/100/2/67
     xprv9ukRPjUyjjUBpXKoJcVK6KBxjdxeM1EoiRc6HEPBJZkSjkWD1K8bPmv1BQXPJ7k25iRy5shUk1x1X7r8oZfHZmDVtsqehRSmj9WirJXxwEz
 
 
