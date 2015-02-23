@@ -272,6 +272,10 @@ elif sys.argv[1] == "bip32":
         bip32privkey = bip32CKD(argin,int(derivpath[1]),1)
     else:
         print "specified bip32 arguement either malformed or not yet supported"
+
+    for x in derivpath
+        print x 
+
     print bip32privkey
     
 else:	
