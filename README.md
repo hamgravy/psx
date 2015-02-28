@@ -79,9 +79,21 @@ generate bip32 root private key from bip39 mnemonic
     cat phrase.txt | psx mnemonic decode TREZOR | tee seed.txt | psx bip32root | tee root.txt
     xprv9s21ZrQH143K3xC5SRKnxV4R829AcnKE7XjZu2PixyZh3CexnsvmkBsi5rzqXMhxTkfLJFB6FuHJPWxxvcH5eYvCDvWcYAMXpbpGGiVUDfH
 
-generate bip32 private key of account/chain 100/2/67 from master key
+generate bip32 private key of account/chain 0 from master private key
 
-    cat root.txt | psx bip32 m/100/2/67
-    xprv9ywxaeMMETnYqhTjDZxsrtnuDqC4SjH2eVP5X9iLcbEwE1QkPXCBNZ55NyemV5fq2sGQoSrVYFUvwjHYzR2B8W84SsXqvoEcLT39j9RWAeW
+    cat root.txt | psx bip32 m/0
+    xprv9ukRPjUyjjU7SeLWz9LjNaCPafd9RuCex2uwGYpqke3eMGpETrzHeqcGsKE7iT6Nxy7UydYwbAJhy1FZeRme4i61pMhoywoyhMU5M8KoKdh
 
+generate bip32 hardended private key of account/chain 0 from master private key
 
+    cat root.txt | psx bip32 m/0h
+    xprv9ukRPjV85Q15e4GvGu5NUN35HS75LLYedzcq4U6YpHbPVTMYbuBpRFRwePN2cYW6RPAeLkpnp4Lxb2K32fhReMtYyRjw5315WG8q6jYtxBz
+    cat root.txt | psx bip32 m/0H
+    xprv9ukRPjV85Q15e4GvGu5NUN35HS75LLYedzcq4U6YpHbPVTMYbuBpRFRwePN2cYW6RPAeLkpnp4Lxb2K32fhReMtYyRjw5315WG8q6jYtxBz
+    cat root.txt | psx bip32 "m/0'"
+    xprv9ukRPjV85Q15e4GvGu5NUN35HS75LLYedzcq4U6YpHbPVTMYbuBpRFRwePN2cYW6RPAeLkpnp4Lxb2K32fhReMtYyRjw5315WG8q6jYtxBz
+
+generate bip32 private key of hardended key of account 0 child key path 1, hardended key 2, key 2, key 1000000000 (!)
+
+    cat root.txt | psx bip32 m/0H/1/2H/2/1000000000
+    xprvA2T2K9q3dPP8CfMZxTjeGnYWVz36M69XD1jfRprLhGFtpTf8kRmxWFbwVmrTzb4k53T2StLD4kacHW7iqyCLzCknTjKgCTEQwWP8aY7rQEk
