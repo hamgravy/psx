@@ -236,6 +236,10 @@ elif sys.argv[1] == "addr":
     pubkey = pubkey(argin)
     address = pubtoaddr(pubkey)
     print address
+elif sys.argv[1] == "pub2addr": 
+    argin=sys.stdin.readline().strip()
+    address = pubtoaddr(argin)
+    print address
 elif sys.argv[1] == "pubkey": 
     argin=sys.stdin.readline().strip()
     pubkey = pubkey(argin)
@@ -267,18 +271,14 @@ elif sys.argv[1] == "bip38dec":
     wifkey = bip38d(argin,passphrase)
     if wifkey != 0:
         print wifkey  	
-elif sys.argv[1] == "bip32root":
-    argin = sys.stdin.readline().strip()
-    bip32rootkey = bip32root(argin)
-    print bip32rootkey
 elif sys.argv[1] == "bip32":
     argin = sys.stdin.readline().strip()
     derivpath = sys.argv[2].split('/')
     depth = 0
     for x in derivpath:
-        if x == "m":
-            bip32privkey = argin
-        else:
+        if x == "m" :
+            bip32privkey = bip32root(argin)
+        elif x != "":
             # check for hardened key paths
             if "h" in x:
                 x = x.rstrip("h")
@@ -296,6 +296,6 @@ elif sys.argv[1] == "bip32":
 else:	
     print "invalid input"	
 
-#TODO: finish bip32 features: hardened key support, pubkey derivation, privkey/address combo output
+#TODO: finish bip32 features: pubkey derivation, privkey/address combo output
 
 
