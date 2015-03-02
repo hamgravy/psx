@@ -43,18 +43,18 @@ def longtohex(num):
     return hexvalue
 
 def b58ce(s):
-	checksum = hashlib.sha256(hashlib.sha256(s).digest()).digest()[:4]
-	b58checkencoded = b58e(s+checksum)
-	return b58checkencoded
+    checksum = hashlib.sha256(hashlib.sha256(s).digest()).digest()[:4]
+    b58checkencoded = b58e(s+checksum)
+    return b58checkencoded
 
 def b58cd(s):
-	k=b58d(s)
-	calcheck = k[0:-4]
-	check0 = k[-4:]
-	check1 = hashlib.sha256(hashlib.sha256(calcheck).digest()).digest()[:4]
-	if check0 != check1:
-		print "error: base58 checkencode checksum FAIL"
-	return calcheck
+    k=b58d(s)
+    calcheck = k[0:-4]
+    check0 = k[-4:]
+    check1 = hashlib.sha256(hashlib.sha256(calcheck).digest()).digest()[:4]
+    if check0 != check1:
+        print "error: base58 checkencode checksum FAIL"
+    return calcheck
 
 def b58e(b):
     n = int('0x0' + b.encode('hex'), 16)
@@ -99,9 +99,9 @@ def ecpoint(secret):
     rawpoint = sk.verifying_key.to_string().encode('hex')
     ypoint = rawpoint[63:128]
     if int(ypoint,16) & 1:
-	    comp = (b'\x03').encode('hex') + rawpoint[:64]
+        comp = (b'\x03').encode('hex') + rawpoint[:64]
     else:
-	    comp = (b'\x02').encode('hex') + rawpoint[:64]
+        comp = (b'\x02').encode('hex') + rawpoint[:64]
     return comp
 
 def fingerprint(secret):
@@ -144,8 +144,8 @@ def bip38e(wifkey,passphrase):
     aes = AES.new(derivedhalf2)
     xor1=int(privkey[0:16].encode('hex'),16) ^ int(derivedhalf1[0:16].encode('hex'),16)
     xor2=int(privkey[16:32].encode('hex'),16) ^ int(derivedhalf1[16:32].encode('hex'),16)
-    encryptedhalf1 = aes.encrypt(hex(xor1)[2:-1].decode('hex')) #fix
-    encryptedhalf2 = aes.encrypt(hex(xor2)[2:-1].decode('hex')) #fix
+    encryptedhalf1 = aes.encrypt(longtohex(xor1).decode('hex'))
+    encryptedhalf2 = aes.encrypt(longtohex(xor2).decode('hex'))
     encrypted_privkey = ('\x01\x42' + flagbyte + addresshash + encryptedhalf1 + encryptedhalf2)
     return b58ce(encrypted_privkey)
 
@@ -171,7 +171,7 @@ def bip38d(bip38key,passphrase):
     decryptedhalf1 = aes.decrypt(encryptedhalf1)
     priv = decryptedhalf1 + decryptedhalf2
     xor1 = int(priv.encode('hex'), 16) ^ int(derivedhalf1.encode('hex'), 16)
-    priv = hex(xor1)[2:-1].decode('hex')
+    priv = longtohex(xor1).decode('hex')
     wif = wifencode(priv)
     pub = pubkey(wif)
     addr = pubtoaddr(pub)
