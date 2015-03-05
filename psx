@@ -202,9 +202,9 @@ def bip32CKDpriv(x,n,masternode):
         prefix=extendedkey[:4]
     else:
         return "input must be in the bip32 extended private key format"
-
+    
     if int(extendedkey[4].encode('hex')) >= masternode:
-        return x # passthrough, this key is upstream, skip to next masternode until something downstream comes
+        return x # passthrough, this key is downstream, skip to next masternode until we get to the right one
 
     chaincode=extendedkey[13:45]
     mastersecret=extendedkey[46:]
@@ -297,8 +297,10 @@ elif sys.argv[1] == "bip32":
                 x = int(x) + (2**31)
             bip32privkey = bip32CKDpriv(bip32privkey,int(x),depth)
         depth = depth+1 
-    print bip32privkey
-    
+    if bip32privkey == argin:
+        print "requested derivation path did not extend beyond the masternode of the provided extended key!"
+    else:
+        print bip32privkey
 else:	
     print "invalid input"	
 

@@ -82,6 +82,7 @@ export BIP32M7=$(echo $BIP32RAND | psx bip32 m/0/2147483647H/1)
 export BIP32M8=$(echo $BIP32RAND | psx bip32 m/0/2147483647H/1/2147483646H)
 export BIP32M9=$(echo $BIP32RAND | psx bip32 m/0/2147483647H/1/2147483646H/2)
 export BIP32M10=$(echo $BIP32M3 | psx bip32 m/0/2147483647H)
+export BIP32M11=$(echo $BIP32M9 | psx bip32 m/0/2147483647H/1/2147483646H)
 echo "using seed (hex)"
 echo $BIP32RAND
 echo "chain m"
@@ -102,8 +103,14 @@ echo "chain m/0/2147483647H/1/2147483646H"
 echo $BIP32M8
 echo "chain m/0/2147483647H/1/2147483646H/2"
 echo $BIP32M9
-echo "downstream m/0/2147483647H"
+echo "downstream:"
+echo "requested m/0/2147483647H"
+echo "provided  m/0"
 echo $BIP32M10
+echo "upstream:"
+echo "requested m/0/2147483647H/1/2147483646H"
+echo "provided  m/0/2147483647H/1/2147483646H/2"
+echo $BIP32M11
 echo "=============== TEST RESULTS ================"
 if [ "$BIP32M1" = "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U" ] 
 then
@@ -168,11 +175,18 @@ else
 	printf "m/0/2147483647H/1/2147483646H/2 \t[FAIL]\n"
 fi
 
-if [ "$BIP32M4" = "$BIP32M10" ] 
+if [ "$BIP32M10" = "$BIP32M4" ] 
 then
 	printf "downstream keygen \t\t\t[OK]\n"
 else
 	printf "downstream keygen \t\t\t[FAIL]\n"
+fi
+
+if [ "$BIP32M11" = "requested derivation path did not extend beyond the masternode of the provided extended key!" ] 
+then
+	printf "upstream keygen \t\t\t[OK]\n"
+else
+	printf "upstream keygen \t\t\t[FAIL]\n"
 fi
 
 echo "============== BIP38 functions =============="
