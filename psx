@@ -182,7 +182,9 @@ def bip38d(bip38key,passphrase):
 
 def bip32root(seed):
     if seed[:4] == "xprv":
-        return seed # an extended key was already given, no need to generate the root key!
+        # an extended key was already given, no need to generate the root key!
+        # if this is a malformed extended key...too bad, there's not really a good way to check. 
+        return seed 
     seed=seed.decode('hex')
     hmackey="Bitcoin seed"
     data=seed
@@ -197,27 +199,36 @@ def bip32root(seed):
     return b58ce(serialized)
 
 def bip32CKDpriv(x,n,masternode):
-    if x[:4] == "xprv":
+    prefix = x[:4]
+    if prefix in ["xprv","xpub"]:
+        if prefix == "xprv":
+            isxprv = True
         extendedkey = b58cd(x)
-        prefix=extendedkey[:4]
     else:
-        return "input must be in the bip32 extended private key format"
+        raise Exception('input must be in the bip32 extended private key format') 
     
     if int(extendedkey[4].encode('hex')) >= masternode:
-        return x # passthrough, this key is downstream, skip to next masternode until we get to the right one
+        # passthrough, the provided extended key is downstream, skip to next masternode until caught up
+        if isxprv:
+            return (x,"xpub not generated") # return a tuple in the expected format
+        else:
+            return ("xprv not generated",x) 
 
     chaincode=extendedkey[13:45]
     mastersecret=extendedkey[46:]
     
     # check for hardended key index n 
-    if n >= (2 ** 31):
-        data=b'\x00' + mastersecret
-    else:
-        data=ecpoint(mastersecret).decode('hex')
+    if n >= (2**31): # is hardended
+        hmacdata = b'\x00' + mastersecret
+        ishardenedkey = True
+    else: # not hardened        
+        hmacdata = ecpoint(mastersecret).decode('hex')
+        ishardenedkey = False
 
-    data = data + struct.pack(">I",n)
+    # compute child key and chaincode    
+    hmacdata = hmacdata + struct.pack(">I",n)
     hmackey=chaincode
-    rawkey = hmac.HMAC(hmackey, data, hashlib.sha512).digest()
+    rawkey = hmac.HMAC(hmackey, hmacdata, hashlib.sha512).digest()
     childkey = (int(rawkey[:32].encode('hex'),16) + int(mastersecret.encode('hex'),16)) % secp256k1_n
     childkey = longtohex(childkey).decode('hex')
     childchaincode = rawkey[32:]
@@ -225,8 +236,20 @@ def bip32CKDpriv(x,n,masternode):
     parentfingerprint = fingerprint(mastersecret)
     childnumber = struct.pack(">I",n)
     
-    serialized = prefix + masternode + parentfingerprint + childnumber + childchaincode + b'\x00' + childkey
-    return b58ce(serialized)
+    generatepub = (not ishardenedkey) or isxprv 
+    generateprv = (prefix == "xprv")
+
+    if generateprv:
+        xprvserialized = b58ce(b'\x04\x88\xAD\xE4' + masternode + parentfingerprint + childnumber + childchaincode + b'\x00' + childkey)
+    else:
+        xprvserialized = "xprv not generated"
+
+    if generatepub:
+        xpubserialized = b58ce(b'\x04\x88\xB2\x1E' + masternode + parentfingerprint + childnumber + childchaincode + ecpoint(childkey).decode('hex'))
+    else:
+        xpubserialized = "xpub not generated"
+
+    return (xprvserialized, xpubserialized)
 
 #-------------------------------------------------------------
 
@@ -283,7 +306,8 @@ elif sys.argv[1] == "bip32":
     depth = 0
     for x in derivpath:
         if x == "m" :
-            bip32privkey = bip32root(argin)
+            bip32prvkey = bip32root(argin)
+            bip32pubkey = "xpub not generated"
         elif x != "":
             # check for hardened key paths
             if "h" in x:
@@ -295,15 +319,24 @@ elif sys.argv[1] == "bip32":
             elif "\'" in x:
                 x = x.rstrip("\'")
                 x = int(x) + (2**31)
-            bip32privkey = bip32CKDpriv(bip32privkey,int(x),depth)
+            bip32prvkey, bip32pubkey = bip32CKDpriv(bip32prvkey,int(x),depth)
         depth = depth+1 
-    if bip32privkey == argin:
-        print "requested derivation path did not extend beyond the masternode of the provided extended key!"
+    if bip32prvkey == argin:
+        raise Exception('requested derivation path did not extend beyond the masternode of the provided extended key!') 
     else:
-        print bip32privkey
+        if len(sys.argv) == 4:
+            if sys.argv[3] == "priv":
+                print bip32prvkey
+            elif sys.argv[3] == "pub":
+                print bip32pubkey
+            else:
+                raise Exception("expected 'priv' or 'pub' for 4th argument")
+        else:
+            print bip32prvkey
+            print bip32pubkey
 else:	
     print "invalid input"	
 
-#TODO: finish bip32 features: pubkey derivation, privkey/address combo output
+#TODO: finish bip32 features: privkey/address combo output
 
 
